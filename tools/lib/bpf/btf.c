@@ -1153,6 +1153,7 @@ int btf_load_into_kernel(struct btf *btf, char *log_buf, size_t log_sz, __u32 lo
 	void *raw_data;
 	int err = 0;
 
+	//tao 用户态对这个btf fd并没有使用
 	if (btf->fd >= 0)
 		return libbpf_err(-EEXIST);
 	if (log_sz && !log_buf)

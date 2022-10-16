@@ -172,6 +172,7 @@ struct fastopen_queue {
  * @rskq_defer_accept - User waits for some data after accept()
  *
  */
+//tao 接收客户端请求request_socks
 struct request_sock_queue {
 	spinlock_t		rskq_lock;
 	u8			rskq_defer_accept;
