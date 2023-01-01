@@ -10049,6 +10049,12 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
 
 static DEFINE_MUTEX(shares_mutex);
 
+/*
+ * tao: https://www.cnblogs.com/acool/p/6882644.html
+ * 通过 echo 2048 >> cpu.shares方式改变cgroup的cpu shares参数
+ * cpu_shares_write_u64
+ * 	-->sched_group_set_shares
+ * */
 int sched_group_set_shares(struct task_group *tg, unsigned long shares)
 {
 	int i;
@@ -10076,6 +10082,7 @@ int sched_group_set_shares(struct task_group *tg, unsigned long shares)
 		update_rq_clock(rq);
 		for_each_sched_entity(se) {
 			update_load_avg(cfs_rq_of(se), se, UPDATE_TG);
+			// tao: 3.10 update_cfs_shares
 			update_cfs_group(se);
 		}
 		rq_unlock_irqrestore(rq, &rf);

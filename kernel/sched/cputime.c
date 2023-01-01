@@ -484,6 +484,12 @@ void account_process_tick(struct task_struct *p, int user_tick)
 		return;
 	}
 
+	/*
+	 * tao: account_process_tick 用于用户态cpu的使用率统计，注意这里时间累加
+	 * 每次都会累加一个tick的时间给对应的统计项：user、sys、irq等，如果一个tick
+	 * 中一个进程发生了切换那么统计严格意义上不是那么"精准"。
+	 * https://mp.weixin.qq.com/s/qkjGYoheHvs-lX9avrYg_g
+	 */
 	cputime = TICK_NSEC;
 	steal = steal_account_process_time(ULONG_MAX);
 

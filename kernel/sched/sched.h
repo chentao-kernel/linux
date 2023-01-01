@@ -351,6 +351,10 @@ struct cfs_bandwidth {
 #endif
 };
 
+/* 
+ * tao: 用于记录所属cgroup的进程信息, 表示本group中所有的
+ * task在上层分配总的CPU资源。
+ */
 /* Task group related information */
 struct task_group {
 	struct cgroup_subsys_state css;
