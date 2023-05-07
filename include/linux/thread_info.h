@@ -115,6 +115,8 @@ static inline int test_and_clear_ti_thread_flag(struct thread_info *ti, int flag
 
 static inline int test_ti_thread_flag(struct thread_info *ti, int flag)
 {
+	// test_bit用于测试nr位是否被置位，置位返回1
+	// https://zhuanlan.zhihu.com/p/381632975
 	return test_bit(flag, (unsigned long *)&ti->flags);
 }
 
