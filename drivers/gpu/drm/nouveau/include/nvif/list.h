@@ -176,6 +176,7 @@ list_add(struct list_head *entry, struct list_head *head)
  * @param entry The new element to prepend to the list.
  * @param head The existing list.
  */
+// list_add_tail 通过head头节点的prev指针指向最后一个entry节点实现
 static inline void
 list_add_tail(struct list_head *entry, struct list_head *head)
 {
