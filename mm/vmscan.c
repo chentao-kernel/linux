@@ -2101,6 +2101,8 @@ static void shrink_active_list(unsigned long nr_to_scan,
 				     &nr_scanned, sc, isolate_mode, lru);
 
 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
+	// get_scan_count函数中通过recent_scanned值计算得到需要扫描的page数，记录在nr_to_scan，
+	// 在isolate_lru_pages中计算实际scan的数量nr_taken，并记录在recent_scanned中
 	reclaim_stat->recent_scanned[file] += nr_taken;
 
 	__count_vm_events(PGREFILL, nr_scanned);
