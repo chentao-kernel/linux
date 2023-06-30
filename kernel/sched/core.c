@@ -160,6 +160,7 @@ static void update_rq_clock_task(struct rq *rq, s64 delta)
 		irq_delta = delta;
 
 	rq->prev_irq_time += irq_delta;
+	// clock_task会减去中断的时间
 	delta -= irq_delta;
 #endif
 #ifdef CONFIG_PARAVIRT_TIME_ACCOUNTING

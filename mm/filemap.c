@@ -1012,6 +1012,7 @@ static int wake_page_function(wait_queue_entry_t *wait, unsigned mode, int sync,
 
 static void wake_up_page_bit(struct page *page, int bit_nr)
 {
+	// page_waitqueue接口咋使用?
 	wait_queue_head_t *q = page_waitqueue(page);
 	struct wait_page_key key;
 	unsigned long flags;
