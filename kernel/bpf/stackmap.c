@@ -28,6 +28,10 @@ struct bpf_stack_map {
 	void *elems;
 	struct pcpu_freelist freelist;
 	u32 n_buckets;
+	/*
+	* cost = n_buckets * sizeof(struct stack_map_bucket *) + sizeof(*smap);
+	* smap = bpf_map_area_alloc(cost, bpf_map_attr_numa_node(attr));
+	*/
 	struct stack_map_bucket *buckets[];
 };
 
@@ -47,7 +51,7 @@ static int prealloc_elems_and_freelist(struct bpf_stack_map *smap)
 	u64 elem_size = sizeof(struct stack_map_bucket) +
 			(u64)smap->map.value_size;
 	int err;
-
+	// 分配元素内存大小
 	smap->elems = bpf_map_area_alloc(elem_size * smap->map.max_entries,
 					 smap->map.numa_node);
 	if (!smap->elems)
@@ -56,7 +60,7 @@ static int prealloc_elems_and_freelist(struct bpf_stack_map *smap)
 	err = pcpu_freelist_init(&smap->freelist);
 	if (err)
 		goto free_elems;
-
+	// 将空闲的elems内存挂到freelist上
 	pcpu_freelist_populate(&smap->freelist, smap->elems, elem_size,
 			       smap->map.max_entries);
 	return 0;
@@ -103,7 +107,7 @@ static struct bpf_map *stack_map_alloc(union bpf_attr *attr)
 
 	bpf_map_init_from_attr(&smap->map, attr);
 	smap->n_buckets = n_buckets;
-
+	// 申请 callchain buffer
 	err = get_callchain_buffers(sysctl_perf_event_max_stack);
 	if (err)
 		goto free_smap;
@@ -230,17 +234,20 @@ static long __bpf_get_stackid(struct bpf_map *map,
 	bucket = READ_ONCE(smap->buckets[id]);
 
 	hash_matches = bucket && bucket->hash == hash;
+	// 根据id如果找到bucket就返回id
 	/* fast cmp */
 	if (hash_matches && flags & BPF_F_FAST_STACK_CMP)
 		return id;
 
 	if (stack_map_use_build_id(map)) {
 		/* for build_id+offset, pop a bucket before slow cmp */
+		// 分配一个新的bucket
 		new_bucket = (struct stack_map_bucket *)
 			pcpu_freelist_pop(&smap->freelist);
 		if (unlikely(!new_bucket))
 			return -ENOMEM;
 		new_bucket->nr = trace_nr;
+		// struct bpf_stack_build_id管理bucket的数据
 		stack_map_get_build_id_offset(
 			(struct bpf_stack_build_id *)new_bucket->data,
 			ips, trace_nr, user);
@@ -270,13 +277,13 @@ static long __bpf_get_stackid(struct bpf_map *map,
 
 	new_bucket->hash = hash;
 	new_bucket->nr = trace_nr;
-
+	// 将新的new_bucket当道buckets中，这里表示如果hash值相同就覆盖老的值
 	old_bucket = xchg(&smap->buckets[id], new_bucket);
 	if (old_bucket)
 		pcpu_freelist_push(&smap->freelist, &old_bucket->fnode);
 	return id;
 }
-
+// 将栈信息放到map中
 BPF_CALL_3(bpf_get_stackid, struct pt_regs *, regs, struct bpf_map *, map,
 	   u64, flags)
 {
@@ -293,7 +300,7 @@ BPF_CALL_3(bpf_get_stackid, struct pt_regs *, regs, struct bpf_map *, map,
 	max_depth += skip;
 	if (max_depth > sysctl_perf_event_max_stack)
 		max_depth = sysctl_perf_event_max_stack;
-
+	// 获取栈信息
 	trace = get_perf_callchain(regs, 0, kernel, user, max_depth,
 				   false, false);
 
@@ -562,6 +569,7 @@ static void *stack_map_lookup_elem(struct bpf_map *map, void *key)
 	return ERR_PTR(-EOPNOTSUPP);
 }
 
+// 用户态map_look_elem时使用
 /* Called from syscall */
 int bpf_stackmap_copy(struct bpf_map *map, void *key, void *value)
 {
@@ -630,7 +638,7 @@ static long stack_map_delete_elem(struct bpf_map *map, void *key)
 
 	if (unlikely(id >= smap->n_buckets))
 		return -E2BIG;
-
+	// xchg用法:https://blog.csdn.net/wh8_2011/article/details/52557612
 	old_bucket = xchg(&smap->buckets[id], NULL);
 	if (old_bucket) {
 		pcpu_freelist_push(&smap->freelist, &old_bucket->fnode);

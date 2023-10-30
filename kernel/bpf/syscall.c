@@ -2957,7 +2957,7 @@ int bpf_link_prime(struct bpf_link *link, struct bpf_link_primer *primer)
 {
 	struct file *file;
 	int fd, id;
-
+	/* 创建fd */
 	fd = get_unused_fd_flags(O_CLOEXEC);
 	if (fd < 0)
 		return fd;
@@ -3531,7 +3531,7 @@ static int bpf_perf_link_attach(const union bpf_attr *attr, struct bpf_prog *pro
 	perf_file = perf_event_get(attr->link_create.target_fd);
 	if (IS_ERR(perf_file))
 		return PTR_ERR(perf_file);
-
+	/* 创建link */
 	link = kzalloc(sizeof(*link), GFP_USER);
 	if (!link) {
 		err = -ENOMEM;
@@ -3721,7 +3721,7 @@ attach_type_to_prog_type(enum bpf_attach_type attach_type)
 		return BPF_PROG_TYPE_UNSPEC;
 	}
 }
-
+/* attach type 类型校验 */
 static int bpf_prog_attach_check_attach_type(const struct bpf_prog *prog,
 					     enum bpf_attach_type attach_type)
 {
@@ -4901,7 +4901,7 @@ static int link_create(union bpf_attr *attr, bpfptr_t uattr)
 
 	if (attr->link_create.attach_type == BPF_STRUCT_OPS)
 		return bpf_struct_ops_link_create(attr);
-
+	/* 获取ebpf prog */
 	prog = bpf_prog_get(attr->link_create.prog_fd);
 	if (IS_ERR(prog))
 		return PTR_ERR(prog);
@@ -4921,6 +4921,7 @@ static int link_create(union bpf_attr *attr, bpfptr_t uattr)
 	case BPF_PROG_TYPE_CGROUP_SOCKOPT:
 		ret = cgroup_bpf_link_attach(attr, prog);
 		break;
+	/* 什么类型 */
 	case BPF_PROG_TYPE_EXT:
 		ret = bpf_tracing_prog_attach(prog,
 					      attr->link_create.target_fd,
@@ -5411,6 +5412,7 @@ static int __sys_bpf(int cmd, bpfptr_t uattr, unsigned int size)
 		err = bpf_map_do_batch(&attr, uattr.user, BPF_MAP_DELETE_BATCH);
 		break;
 	case BPF_LINK_CREATE:
+		/* 创建link */
 		err = link_create(&attr, uattr);
 		break;
 	case BPF_LINK_UPDATE:

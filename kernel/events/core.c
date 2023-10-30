@@ -10405,7 +10405,7 @@ static int perf_event_set_bpf_handler(struct perf_event *event,
 		 */
 		return -EPROTO;
 	}
-
+	/* 将ebpf prog 赋值到对应的perf event上 */
 	event->prog = prog;
 	event->bpf_cookie = bpf_cookie;
 	event->orig_overflow_handler = READ_ONCE(event->overflow_handler);

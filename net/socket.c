@@ -458,7 +458,7 @@ static struct file_system_type sock_fs_type = {
  *
  *	This function uses GFP_KERNEL internally.
  */
-
+// 创建socket的fd文件
 struct file *sock_alloc_file(struct socket *sock, int flags, const char *dname)
 {
 	struct file *file;
@@ -485,6 +485,7 @@ EXPORT_SYMBOL(sock_alloc_file);
 static int sock_map_fd(struct socket *sock, int flags)
 {
 	struct file *newfile;
+	// 创建fd，和link_create中使用相同的接口
 	int fd = get_unused_fd_flags(flags);
 	if (unlikely(fd < 0)) {
 		sock_release(sock);

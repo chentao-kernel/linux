@@ -1343,6 +1343,7 @@ enum bpf_stack_build_id_status {
 };
 
 #define BPF_BUILD_ID_SIZE 20
+// bpf: extend stackmap to save binary_build_id+offset instead of address
 struct bpf_stack_build_id {
 	__s32		status;
 	unsigned char	build_id[BPF_BUILD_ID_SIZE];
