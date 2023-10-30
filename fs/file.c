@@ -500,6 +500,7 @@ static unsigned int find_next_fd(struct fdtable *fdt, unsigned int start)
 
 /*
  * allocate a file descriptor, mark it busy.
+ * 创建fd
  */
 static int alloc_fd(unsigned start, unsigned end, unsigned flags)
 {

@@ -5791,6 +5791,7 @@ union bpf_attr {
  *
  *		**-ENOENT** if the bpf_local_storage cannot be found.
  */
+ // 记录所有的bpf helper functions
 #define ___BPF_FUNC_MAPPER(FN, ctx...)			\
 	FN(unspec, 0, ##ctx)				\
 	FN(map_lookup_elem, 1, ##ctx)			\
