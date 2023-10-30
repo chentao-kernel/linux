@@ -106,11 +106,14 @@ void pcpu_freelist_populate(struct pcpu_freelist *s, void *buf, u32 elem_size,
 	m = nr_elems % num_possible_cpus();
 
 	cpu_idx = 0;
+	// 用per_cpu freelist 在每个cpu上分别指向各个elems
 	for_each_possible_cpu(cpu) {
+		// 获取当前cpu的percpu 指针
 		head = per_cpu_ptr(s->freelist, cpu);
 		j = n + (cpu_idx < m ? 1 : 0);
 		for (i = 0; i < j; i++) {
 			/* No locking required as this is not visible yet. */
+			// 这里的buf实际上指的是bpf_map_stack中的pcpu_freelist_node
 			pcpu_freelist_push_node(head, buf);
 			buf += elem_size;
 		}
