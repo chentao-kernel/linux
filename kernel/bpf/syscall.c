@@ -206,7 +206,11 @@ static int bpf_map_update_value(struct bpf_map *map, struct file *map_file,
 
 	return err;
 }
-
+/*
+* map_lookup_elem
+	-->bpf_map_copy_value
+		-->bpf_map_stack
+*/
 static int bpf_map_copy_value(struct bpf_map *map, void *key, void *value,
 			      __u64 flags)
 {
@@ -225,7 +229,7 @@ static int bpf_map_copy_value(struct bpf_map *map, void *key, void *value,
 	} else if (map->map_type == BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE) {
 		err = bpf_percpu_cgroup_storage_copy(map, key, value);
 	} else if (map->map_type == BPF_MAP_TYPE_STACK_TRACE) {
-		err = bpf_stackmap_copy(map, key, value);
+		err = bpf_stackmap_copy_and_delete(map, key, value, false);
 	} else if (IS_FD_ARRAY(map) || IS_FD_PROG_ARRAY(map)) {
 		err = bpf_fd_array_map_lookup_elem(map, key, value);
 	} else if (IS_FD_HASH(map)) {
@@ -1372,7 +1376,8 @@ struct bpf_map *bpf_map_inc_not_zero(struct bpf_map *map)
 }
 EXPORT_SYMBOL_GPL(bpf_map_inc_not_zero);
 
-int __weak bpf_stackmap_copy(struct bpf_map *map, void *key, void *value)
+int __weak bpf_stackmap_copy_and_delete(struct bpf_map *map, void *key, void *value,
+								bool delete)
 {
 	return -ENOTSUPP;
 }
@@ -1897,7 +1902,8 @@ static int map_lookup_and_delete_elem(union bpf_attr *attr)
 
 	if (attr->flags &&
 	    (map->map_type == BPF_MAP_TYPE_QUEUE ||
-	     map->map_type == BPF_MAP_TYPE_STACK)) {
+	     map->map_type == BPF_MAP_TYPE_STACK ||
+		 map->map_type == BPF_MAP_TYPE_STACK_TRACE)) {
 		err = -EINVAL;
 		goto err_put;
 	}
@@ -1934,6 +1940,12 @@ static int map_lookup_and_delete_elem(union bpf_attr *attr)
 			rcu_read_lock();
 			err = map->ops->map_lookup_and_delete_elem(map, key, value, attr->flags);
 			rcu_read_unlock();
+			bpf_enable_instrumentation();
+		}
+	} else if (map->map_type == BPF_MAP_TYPE_STACK_TRACE) {
+		if (!bpf_map_is_offloaded(map)) {
+			bpf_disable_instrumentation();
+			err = bpf_stackmap_copy_and_delete(map, key, value, true);
 			bpf_enable_instrumentation();
 		}
 	}

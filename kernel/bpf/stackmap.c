@@ -571,14 +571,14 @@ static void *stack_map_lookup_elem(struct bpf_map *map, void *key)
 
 // 用户态map_look_elem时使用
 /* Called from syscall */
-int bpf_stackmap_copy(struct bpf_map *map, void *key, void *value)
+int bpf_stackmap_copy_and_delete(struct bpf_map *map, void *key, void *value, bool delete)
 {
 	struct bpf_stack_map *smap = container_of(map, struct bpf_stack_map, map);
 	struct stack_map_bucket *bucket, *old_bucket;
 	u32 id = *(u32 *)key, trace_len;
 
 	if (unlikely(id >= smap->n_buckets))
-		return -ENOENT;
+		return -E2BIG;
 
 	bucket = xchg(&smap->buckets[id], NULL);
 	if (!bucket)
@@ -588,7 +588,11 @@ int bpf_stackmap_copy(struct bpf_map *map, void *key, void *value)
 	memcpy(value, bucket->data, trace_len);
 	memset(value + trace_len, 0, map->value_size - trace_len);
 
-	old_bucket = xchg(&smap->buckets[id], bucket);
+	if (!delete)
+		old_bucket = xchg(&smap->buckets[id], bucket);
+	else
+		old_bucket = bucket;
+
 	if (old_bucket)
 		pcpu_freelist_push(&smap->freelist, &old_bucket->fnode);
 	return 0;
