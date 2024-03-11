@@ -1,0 +1,24 @@
+OK. Log says:
+Sendmail: /usr/bin/msmtp -i song@kernel.org jolsa@kernel.org ast@kernel.org daniel@iogearbox.net andrii@kernel.org yonghong.song@linux.dev martin.lau@linux.dev john.fastabend@gmail.com haoluo@google.com bpf@vger.kernel.org linux-kernel@vger.kernel.org chen.dylane@gmail.com
+From: Tao Chen <chen.dylane@gmail.com>
+To: song@kernel.org,
+	jolsa@kernel.org,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	andrii@kernel.org,
+	yonghong.song@linux.dev,
+	martin.lau@linux.dev,
+	john.fastabend@gmail.com,
+	haoluo@google.com
+Cc: bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	chen.dylane@gmail.com
+Subject: [PATCH] bpf: Use E2BIG instead of ENOENT
+Date: Sat,  4 Nov 2023 10:44:44 +0800
+Message-Id: <20231104024444.385484-1-chen.dylane@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+
+Result: OK
+
