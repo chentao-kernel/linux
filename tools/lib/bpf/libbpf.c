@@ -8576,6 +8576,30 @@ const char *bpf_program__section_name(const struct bpf_program *prog)
 	return prog->sec_name;
 }
 
+int bpf_program__set_section_name(struct bpf_object *obj, const char *old_sec,
+								  const char *new_sec)
+{
+	struct bpf_program *prog = NULL;
+
+	if (obj == NULL || old_sec == NULL || new_sec == NULL)
+		return libbpf_err(-EINVAL);
+
+	do {
+		prog = bpf_object__next_program(obj, NULL);
+		if (prog) {
+			if (strcmp(prog->sec_name, old_sec) == 0) {
+				free(prog->sec_name);
+				prog->sec_name = strdup(new_sec);
+				if (!prog->sec_name)
+					return libbpf_err(-ENOMEM);
+				return 0;
+			}
+		}
+	} while(prog);
+
+	return libbpf_err(-ENOENT);
+}
+
 bool bpf_program__autoload(const struct bpf_program *prog)
 {
 	return prog->autoload;
