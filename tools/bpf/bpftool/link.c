@@ -869,7 +869,13 @@ static int show_link_close_plain(int fd, struct bpf_link_info *info)
 	struct bpf_prog_info prog_info;
 	const char *prog_type_str;
 	int err;
-
+	/*
+	 * ubuntu@VM-16-4-ubuntu:~/code/bpftool$ sudo bpftool link show
+	   105: raw_tracepoint  prog 549  
+        	tp 'sched_wakeup'  
+	   106: type 7  prog 550  
+	 *
+	 */
 	show_link_header_plain(info);
 
 	switch (info->type) {
