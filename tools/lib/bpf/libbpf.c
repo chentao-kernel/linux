@@ -388,7 +388,9 @@ enum sec_def_flags {
 
 struct bpf_sec_def {
 	char *sec;
+	// 设置 prog type
 	enum bpf_prog_type prog_type;
+	// 设置 attach type
 	enum bpf_attach_type expected_attach_type;
 	long cookie;
 	int handler_id;
@@ -10550,6 +10552,7 @@ int bpf_link__destroy(struct bpf_link *link)
 	if (IS_ERR_OR_NULL(link))
 		return 0;
 
+	//link->detach = &bpf_link__detach_fd;
 	if (!link->disconnected && link->detach)
 		err = link->detach(link);
 	if (link->pin_path)
