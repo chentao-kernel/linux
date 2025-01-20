@@ -659,6 +659,7 @@ static int __cgroup_bpf_attach(struct cgroup *cgrp,
 		return -ENOMEM;
 
 	if (pl) {
+		// 如果有老的prog最终会释放old_prog
 		old_prog = pl->prog;
 	} else {
 		struct hlist_node *last = NULL;
@@ -674,6 +675,7 @@ static int __cgroup_bpf_attach(struct cgroup *cgrp,
 			hlist_for_each(last, progs) {
 				if (last->next)
 					continue;
+				// 如果是新的prog_list，将prog_list添加到progs链表上
 				hlist_add_behind(&pl->node, last);
 				break;
 			}
@@ -681,6 +683,7 @@ static int __cgroup_bpf_attach(struct cgroup *cgrp,
 
 	pl->prog = prog;
 	pl->link = link;
+	// 将storage赋值给pl->storage
 	bpf_cgroup_storages_assign(pl->storage, storage);
 	cgrp->bpf.flags[atype] = saved_flags;
 
@@ -1549,6 +1552,7 @@ int __cgroup_bpf_check_dev_permission(short dev_type, u32 major, u32 minor,
 	return ret;
 }
 
+// bpf_get_local_storage help 函数
 BPF_CALL_2(bpf_get_local_storage, struct bpf_map *, map, u64, flags)
 {
 	/* flags argument is not used now,

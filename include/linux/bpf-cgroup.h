@@ -87,6 +87,10 @@ struct bpf_storage_buffer {
 	char data[];
 };
 
+// bpf_cgroup_storage作为节点由bpf_cgroup_storage_map管理
+//
+//红黑树提供高效的查找和排序：当你需要根据 storage->key 或其他字段进行有序存储和快速查找时，红黑树是理想的选择。
+//链表提供简单的遍历：链表便于顺序遍历所有元素，尤其是在需要处理所有元素时，链表的性能更为高效，并且链表结构本身维护开销较小。
 struct bpf_cgroup_storage {
 	union {
 		struct bpf_storage_buffer *buf;
